@@ -1,4 +1,4 @@
-# 🤖 Cita Previa Extranjería Checker Bot
+# Cita Previa Extranjería Checker Bot
 
 A Python bot that automatically monitors the Cita Previa Extranjería website for available appointments for **Toma de Huellas (fingerprinting)** in **Barcelona**. When appointments become available, it sends you an email notification.
 
@@ -13,23 +13,23 @@ This bot is designed as a **monitoring tool only**. It:
 
 **You must manually complete the booking** when notified. This approach is ethical and avoids legal issues.
 
-## 🎯 Features
+## Features
 
-- 🔄 Continuous monitoring at configurable intervals
-- 🏢 Automatically checks ALL offices in Barcelona
-- 📧 Email notifications when appointments are available
-- 📝 Detailed logging of all checks
-- 🎭 Headless browser mode (runs in background)
-- ⚙️ Easy configuration via environment variables
-- 🛡️ Safe and legal - no automation of booking process
+- Continuous monitoring at configurable intervals
+- Automatically checks ALL offices in Barcelona
+- Email notifications when appointments are available
+- Detailed logging of all checks
+- Headless browser mode (runs in background)
+- Easy configuration via environment variables
+- Safe and legal - no automation of booking process
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.8 or higher
 - Chrome browser installed
 - Gmail account (or other SMTP email service)
 
-## 🚀 Installation
+## Installation
 
 ### 1. Clone or download this repository
 
@@ -90,7 +90,30 @@ For Gmail users, you need to create an App Password:
 5. Generate the password
 6. Copy the 16-character password to your `.env` file
 
-## 📖 Usage
+## How to Run
+
+1. Create and activate a Python virtual environment:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Configure your `.env` file with your NIE, name, country code, and email credentials.
+
+4. Run the bot:
+
+```bash
+python cita_checker.py
+```
+
+## Usage
 
 ### Basic Usage
 
@@ -143,7 +166,7 @@ python cita_checker.py
 screen -r cita_bot
 ```
 
-## 📊 Output Example
+## Output Example
 
 ```
 2025-11-28 14:30:00 - INFO - 🤖 Starting Cita Previa Checker Bot
@@ -157,12 +180,12 @@ screen -r cita_bot
 2025-11-28 14:30:08 - INFO - Navigated to: https://icp.administracionelectronica.gob.es/icpplus/citar
 2025-11-28 14:30:12 - INFO - Selected province: Barcelona
 2025-11-28 14:30:15 - INFO - Selected tramite: POLICIA-TOMA DE HUELLAS...
-2025-11-28 14:30:20 - INFO - ❌ No appointments available
+2025-11-28 14:30:20 - INFO - No appointments available
 2025-11-28 14:30:21 - INFO - WebDriver closed
-2025-11-28 14:30:21 - INFO - ⏳ Waiting 15 minutes until next check...
+2025-11-28 14:30:21 - INFO - Waiting 15 minutes until next check...
 ```
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### ChromeDriver Issues
 ```bash
@@ -187,7 +210,7 @@ brew upgrade chromedriver
 xattr -d com.apple.quarantine /path/to/chromedriver
 ```
 
-## 🛡️ Legal and Ethical Considerations
+## Legal and Ethical Considerations
 
 This bot is designed to be:
 - **Legal**: Only monitors public information
@@ -201,7 +224,7 @@ This bot is designed to be:
 - Manually complete the booking when notified
 - Respect the website's terms of service
 
-## 📝 File Structure
+## File Structure
 
 ```
 cita_alert/
@@ -215,7 +238,7 @@ cita_alert/
 └── cita_checker.log    # Log file (created on first run)
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Feel free to improve this bot! Some ideas:
 - Support for other provinces
@@ -224,7 +247,7 @@ Feel free to improve this bot! Some ideas:
 - Web dashboard
 - Docker support
 
-## ⚠️ Disclaimer
+## Disclaimer
 
 This software is provided "as is" without warranty. Use at your own risk. The authors are not responsible for:
 - Any issues arising from use of this bot
@@ -234,7 +257,7 @@ This software is provided "as is" without warranty. Use at your own risk. The au
 
 Always verify appointment availability manually on the official website before making plans.
 
-## 📧 Support
+## Support
 
 If you encounter issues:
 1. Check the troubleshooting section
@@ -242,10 +265,10 @@ If you encounter issues:
 3. Ensure all configuration is correct
 4. Try running with `HEADLESS=false` to debug visually
 
-## 📜 License
+## License
 
 This project is open source and available for personal use. Please use responsibly.
 
 ---
 
-**Good luck with your cita! 🍀**
+**Good luck with your cita!**
