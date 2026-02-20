@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Cita Previa Extranjería Checker Bot
-Monitors availability for "Toma de Huellas" appointments in Barcelona
+Monitors availability for "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E." appointments in S.Cruz Tenerife
 """
 
 import logging
@@ -38,13 +38,17 @@ class CitaChecker:
 
     # Cita Previa URLs
     BASE_URL = "https://icp.administracionelectronica.gob.es/icpplustieb/index"
-    BARCELONA_URL = (
+    PROVINCIA_URL = (
         "https://icp.administracionelectronica.gob.es/icpco/citar?p=38&locale=es"
     )
 
-    # Form values for Barcelona - Toma de Huellas
+    # Values for desired office
+    OFFICE_VALUE = "7"
+    OFFICE_NAME = "CNP San Cristobal de LA LAGUNA, CALLE NAVA Y GRIMON, 66, Santa Cruz de Tenerife"
+
+    # Form values for S.Cruz Tenerife - POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
     PROVINCIA = "S.Cruz Tenerife"
-    TRAMITE_VALUE = "4038"  # Value for POLICÍA-TOMA DE HUELLAS
+    TRAMITE_VALUE = "4038"
     TRAMITE_NAME = "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E."
 
     def __init__(self, headless=True):
@@ -76,12 +80,14 @@ class CitaChecker:
             logger.info("WebDriver closed")
 
     def set_random_window_size(self):
+        """Set radom window size to prevent bot detection"""
         width = random.randint(800, 1600)
         height_factor = random.uniform(1.5, 2.5)
         height = (width * height_factor) // 3
         self.driver.set_window_size(width, height)
 
     def sleep_random(self):
+        """Sleep between 2 and 5 seconds to prevent bot detection"""
         time.sleep(random.randint(2, 5))
 
     def check_availability(self):
@@ -94,9 +100,9 @@ class CitaChecker:
             self.setup_driver()
             self.set_random_window_size()
 
-            # Navigate directly to Barcelona page
-            self.driver.get(self.BARCELONA_URL)
-            logger.info(f"Navigated to: {self.BARCELONA_URL}")
+            # Navigate directly to provincia page
+            self.driver.get(self.PROVINCIA_URL)
+            logger.info(f"Navigated to: {self.PROVINCIA_URL}")
 
             # Wait for the page to load
             wait = WebDriverWait(self.driver, 15)
@@ -116,16 +122,14 @@ class CitaChecker:
             except Exception as e:
                 logger.warning(f"Could not dismiss cookie banner: {str(e)}")
 
-            # Select "Cualquier oficina" (any office) - value 99
+            # Select correct office
             try:
                 oficina_select = wait.until(
                     EC.presence_of_element_located((By.ID, "sede"))
                 )
                 select_oficina = Select(oficina_select)
-                select_oficina.select_by_value("7")
-                logger.info(
-                    "Selected 'CNP San Cristobal de LA LAGUNA, CALLE NAVA Y GRIMON, 66, Santa Cruz de Tenerife'"
-                )
+                select_oficina.select_by_value(self.OFFICE_VALUE)
+                logger.info(f"Selected '{self.OFFICE_NAME}'")
 
                 # Wait for page to refresh and load tramites
                 time.sleep(2)
@@ -134,14 +138,14 @@ class CitaChecker:
                 logger.error(f"Could not select office: {str(e)}")
                 return None, "Could not select office"
 
-            # Select the tramite (TOMA DE HUELLAS)
+            # Select the tramite
             try:
                 tramite_select_element = wait.until(
                     EC.presence_of_element_located((By.ID, "tramiteGrupo[0]"))
                 )
                 tramite_select = Select(tramite_select_element)
 
-                # Check if our tramite (4010) is available
+                # Check if our tramite is available
                 tramite_available = False
                 for option in tramite_select.options:
                     if option.get_attribute("value") == self.TRAMITE_VALUE:
@@ -149,10 +153,10 @@ class CitaChecker:
                         break
 
                 if not tramite_available:
-                    logger.error(f"Tramite 'TOMA DE HUELLAS' not available")
+                    logger.error(f"Tramite '{self.TRAMITE_NAME}' not available")
                     return None, "Tramite not available"
 
-                # Select the tramite (TOMA DE HUELLAS)
+                # Select the tramite
                 tramite_select.select_by_value(self.TRAMITE_VALUE)
                 logger.info(f"Selected tramite: {self.TRAMITE_NAME}")
                 time.sleep(2)
@@ -249,7 +253,7 @@ class CitaChecker:
                     try:
                         self.driver.save_screenshot("debug_acinfo_page.png")
                         logger.info("Saved debug screenshot to debug_acinfo_page.png")
-                    except:
+                    except Exception:
                         pass
                     return None, "Could not click 'Presentación sin Cl@ve' button"
 
@@ -463,9 +467,9 @@ class CitaChecker:
         Args:
             interval_minutes: Minutes between checks (default 15)
         """
-        logger.info(f"🤖 Starting Cita Previa Checker Bot")
-        logger.info(f"📍 Location: Barcelona")
-        logger.info(f"📋 Tramite: Toma de Huellas")
+        logger.info("🤖 Starting Cita Previa Checker Bot")
+        logger.info(f"📍 Location: {self.PROVINCIA}")
+        logger.info(f"📋 Tramite: {self.TRAMITE_NAME}")
         logger.info(f"⏱️ Check interval: {interval_minutes} minutes")
         logger.info("=" * 60)
 
@@ -484,7 +488,7 @@ class CitaChecker:
 
                 if available:
                     # Appointments found! Send notification
-                    subject = "🎉 CITA PREVIA AVAILABLE"
+                    subject = f"🎉 CITA PREVIA AVAILABLE – {self.TRAMITE_NAME}"
                     self.send_email_notification(subject, message)
 
                     # You can choose to stop checking or continue
@@ -499,9 +503,8 @@ class CitaChecker:
                 logger.info(
                     f"⏳ Waiting {interval_minutes} minutes until next check..."
                 )
-                time.sleep(
-                    interval_minutes * 60 + random.randint(-2, 2) * 60
-                )  # variation by +-2min
+                # variation by +-2min
+                time.sleep(interval_minutes * 60 + random.randint(-2, 2) * 60)
 
         except KeyboardInterrupt:
             logger.info("\n\n🛑 Bot stopped by user")
