@@ -1,3 +1,6 @@
+> [!NOTE]
+> Adjusted for checking "POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E." appointments in La Laguna, S.Cruz Tenerife
+
 # Cita Previa Extranjería Checker Bot
 
 A Python bot that automatically monitors the Cita Previa Extranjería website for available appointments for **Toma de Huellas (fingerprinting)** in **Barcelona**. When appointments become available, it sends you an email notification.
