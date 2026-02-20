@@ -4,21 +4,22 @@ Cita Previa Extranjería Checker Bot
 Monitors availability for "Toma de Huellas" appointments in Barcelona
 """
 
-import time
 import logging
-from datetime import datetime
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait, Select
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from selenium.webdriver.chrome.options import Options
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from dotenv import load_dotenv
 import os
 import random
+import smtplib
+import time
+from datetime import datetime
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+from dotenv import load_dotenv
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select, WebDriverWait
 
 # Load environment variables
 load_dotenv()
@@ -26,20 +27,20 @@ load_dotenv()
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('cita_checker.log'),
-        logging.StreamHandler()
-    ]
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[logging.FileHandler("cita_checker.log"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
+
 
 class CitaChecker:
     """Check for available Cita Previa appointments"""
 
     # Cita Previa URLs
     BASE_URL = "https://icp.administracionelectronica.gob.es/icpplustieb/index"
-    BARCELONA_URL = "https://icp.administracionelectronica.gob.es/icpco/citar?p=38&locale=es"
+    BARCELONA_URL = (
+        "https://icp.administracionelectronica.gob.es/icpco/citar?p=38&locale=es"
+    )
 
     # Form values for Barcelona - Toma de Huellas
     PROVINCIA = "S.Cruz Tenerife"
@@ -56,11 +57,13 @@ class CitaChecker:
         """Setup Chrome WebDriver with options"""
         chrome_options = Options()
         if self.headless:
-            chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-        chrome_options.add_argument('user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+            chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_argument(
+            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        )
 
         self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(10)
@@ -102,7 +105,9 @@ class CitaChecker:
             # Dismiss cookie banner if present
             try:
                 # Try to find and click the cookie accept button
-                cookie_button = self.driver.find_element(By.ID, "cookie_action_close_header")
+                cookie_button = self.driver.find_element(
+                    By.ID, "cookie_action_close_header"
+                )
                 cookie_button.click()
                 logger.info("Dismissed cookie banner")
                 self.sleep_random()
@@ -118,7 +123,9 @@ class CitaChecker:
                 )
                 select_oficina = Select(oficina_select)
                 select_oficina.select_by_value("7")
-                logger.info("Selected 'CNP San Cristobal de LA LAGUNA, CALLE NAVA Y GRIMON, 66, Santa Cruz de Tenerife'")
+                logger.info(
+                    "Selected 'CNP San Cristobal de LA LAGUNA, CALLE NAVA Y GRIMON, 66, Santa Cruz de Tenerife'"
+                )
 
                 # Wait for page to refresh and load tramites
                 time.sleep(2)
@@ -205,7 +212,9 @@ class CitaChecker:
                 if not btn_clicked:
                     try:
                         logger.info("Attempting to find button by XPath...")
-                        btn_entrar = self.driver.find_element(By.XPATH, "//input[@id='btnEntrar']")
+                        btn_entrar = self.driver.find_element(
+                            By.XPATH, "//input[@id='btnEntrar']"
+                        )
                         btn_entrar.click()
                         logger.info("✓ Clicked button by XPath")
                         btn_clicked = True
@@ -221,7 +230,9 @@ class CitaChecker:
                         logger.info("✓ Clicked button with JavaScript")
                         btn_clicked = True
                     except Exception as e:
-                        logger.warning(f"Could not click button with JavaScript: {str(e)}")
+                        logger.warning(
+                            f"Could not click button with JavaScript: {str(e)}"
+                        )
 
                 if btn_clicked:
                     self.sleep_random()
@@ -230,7 +241,9 @@ class CitaChecker:
                     logger.info(f"Current page: {current_url}")
                 else:
                     # Log page info for debugging
-                    logger.error("Failed to click 'Presentación sin Cl@ve' button with all methods")
+                    logger.error(
+                        "Failed to click 'Presentación sin Cl@ve' button with all methods"
+                    )
                     logger.error(f"Current URL: {self.driver.current_url}")
                     # Save screenshot for debugging (optional)
                     try:
@@ -241,7 +254,9 @@ class CitaChecker:
                     return None, "Could not click 'Presentación sin Cl@ve' button"
 
             except Exception as e:
-                logger.error(f"Unexpected error clicking 'Presentación sin Cl@ve' button: {str(e)}")
+                logger.error(
+                    f"Unexpected error clicking 'Presentación sin Cl@ve' button: {str(e)}"
+                )
                 return None, f"Could not click 'Presentación sin Cl@ve': {str(e)}"
 
             # Fill in personal data on acEntrada page
@@ -268,10 +283,10 @@ class CitaChecker:
                 logger.info("Filled full name")
 
                 # Select country (CHINA) - value 406
-                #pais_select = Select(self.driver.find_element(By.ID, "txtPaisNac"))
-                #country_value = os.getenv("COUNTRY_CODE", "406")  # 406 = CHINA
-                #pais_select.select_by_value(country_value)
-                #logger.info(f"Selected country with code: {country_value}")
+                # pais_select = Select(self.driver.find_element(By.ID, "txtPaisNac"))
+                # country_value = os.getenv("COUNTRY_CODE", "406")  # 406 = CHINA
+                # pais_select.select_by_value(country_value)
+                # logger.info(f"Selected country with code: {country_value}")
 
                 self.sleep_random()
             except Exception as e:
@@ -309,7 +324,9 @@ class CitaChecker:
                 logger.info(f"Current page after 'Solicitar Cita': {current_url}")
 
             except Exception as e:
-                logger.error(f"Could not find or click 'Solicitar Cita' button: {str(e)}")
+                logger.error(
+                    f"Could not find or click 'Solicitar Cita' button: {str(e)}"
+                )
                 return None, f"Could not request cita: {str(e)}"
 
             # Check for availability message on acCitar page
@@ -321,18 +338,25 @@ class CitaChecker:
                 "en este momento no hay citas disponibles",
                 "no existen citas disponibles",
                 "agotadas las citas",
-                "no hay citas disponibles para la reserva sin cl@ve"
+                "no hay citas disponibles para la reserva sin cl@ve",
             ]
 
             has_no_citas = any(phrase in page_source for phrase in no_citas_phrases)
 
             # Check for the specific message about Cl@ve availability
-            clave_available = "sí tienen a su disposición mediante el uso de cl@ve" in page_source
+            clave_available = (
+                "sí tienen a su disposición mediante el uso de cl@ve" in page_source
+            )
 
             if has_no_citas:
                 if clave_available:
-                    logger.info("❌ No appointments available without Cl@ve (appointments available WITH Cl@ve)")
-                    return False, "No hay citas disponibles sin Cl@ve. Hay citas disponibles CON Cl@ve."
+                    logger.info(
+                        "❌ No appointments available without Cl@ve (appointments available WITH Cl@ve)"
+                    )
+                    return (
+                        False,
+                        "No hay citas disponibles sin Cl@ve. Hay citas disponibles CON Cl@ve.",
+                    )
                 else:
                     logger.info("❌ No appointments available")
                     return False, "No hay citas disponibles en ninguna oficina"
@@ -348,16 +372,31 @@ class CitaChecker:
                     try:
                         self.driver.find_element(By.ID, "idSede")
                         logger.info("✅ APPOINTMENTS MIGHT BE AVAILABLE! Form detected")
-                        return True, "¡Posibles citas disponibles! Check the website immediately."
+                        return (
+                            True,
+                            "¡Posibles citas disponibles! Check the website immediately.",
+                        )
                     except NoSuchElementException:
                         # Check if we see the date/hour selection page
-                        if "selecciona" in page_source and ("fecha" in page_source or "hora" in page_source):
-                            logger.info("✅ APPOINTMENTS AVAILABLE! Date selection detected")
-                            return True, "¡Citas disponibles! Check the website immediately."
+                        if "selecciona" in page_source and (
+                            "fecha" in page_source or "hora" in page_source
+                        ):
+                            logger.info(
+                                "✅ APPOINTMENTS AVAILABLE! Date selection detected"
+                            )
+                            return (
+                                True,
+                                "¡Citas disponibles! Check the website immediately.",
+                            )
                         else:
                             # If no clear "no citas" message and no form elements, might be available
-                            logger.info("⚠️ Status unclear - no clear 'no citas' message found")
-                            return True, "Possible appointments! Please check the website manually to confirm."
+                            logger.info(
+                                "⚠️ Status unclear - no clear 'no citas' message found"
+                            )
+                            return (
+                                True,
+                                "Possible appointments! Please check the website manually to confirm.",
+                            )
 
         except Exception as e:
             logger.error(f"Error checking availability: {str(e)}")
@@ -376,14 +415,16 @@ class CitaChecker:
             smtp_port = int(os.getenv("SMTP_PORT", "587"))
 
             if not all([sender_email, sender_password, receiver_email]):
-                logger.warning("Email credentials not configured. Skipping email notification.")
+                logger.warning(
+                    "Email credentials not configured. Skipping email notification."
+                )
                 return False
 
             # Create message
             msg = MIMEMultipart()
-            msg['From'] = sender_email
-            msg['To'] = receiver_email
-            msg['Subject'] = subject
+            msg["From"] = sender_email
+            msg["To"] = receiver_email
+            msg["Subject"] = subject
 
             body = f"""
             Cita Previa Alert
@@ -391,7 +432,7 @@ class CitaChecker:
 
             {message}
 
-            Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+            Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
             URL: {self.BASE_URL}
 
@@ -401,7 +442,7 @@ class CitaChecker:
             This is an automated message from Cita Previa Checker Bot
             """
 
-            msg.attach(MIMEText(body, 'plain'))
+            msg.attach(MIMEText(body, "plain"))
 
             # Send email
             with smtplib.SMTP(smtp_server, smtp_port) as server:
@@ -433,15 +474,17 @@ class CitaChecker:
         try:
             while True:
                 check_count += 1
-                logger.info(f"\n{'='*60}")
-                logger.info(f"Check #{check_count} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-                logger.info(f"{'='*60}")
+                logger.info(f"\n{'=' * 60}")
+                logger.info(
+                    f"Check #{check_count} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                )
+                logger.info(f"{'=' * 60}")
 
                 available, message = self.check_availability()
 
                 if available:
                     # Appointments found! Send notification
-                    subject = "🎉 CITA PREVIA AVAILABLE - Barcelona Toma de Huellas"
+                    subject = "🎉 CITA PREVIA AVAILABLE"
                     self.send_email_notification(subject, message)
 
                     # You can choose to stop checking or continue
@@ -453,8 +496,12 @@ class CitaChecker:
                     logger.warning("Status unclear - manual check recommended")
 
                 # Wait before next check
-                logger.info(f"⏳ Waiting {interval_minutes} minutes until next check...")
-                time.sleep(interval_minutes * 60 + random.randint(-2, 2) * 60) # variation by +-2min
+                logger.info(
+                    f"⏳ Waiting {interval_minutes} minutes until next check..."
+                )
+                time.sleep(
+                    interval_minutes * 60 + random.randint(-2, 2) * 60
+                )  # variation by +-2min
 
         except KeyboardInterrupt:
             logger.info("\n\n🛑 Bot stopped by user")
